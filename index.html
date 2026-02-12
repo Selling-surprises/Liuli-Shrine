@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>琉璃神社</title>
+  <link rel="icon" type="image/x-icon" href="images/favicon.png">
+  <link rel="stylesheet" href="css/all.min.css">
+  <!-- Font Awesome 6 (图标库) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- 镜像配置 · 外置琉璃双镜 (移除内置硬编码) -->
+  <script src="js/links.js"></script>
+  <style>
+    /* ---------- 背景topBG系列（完全保留原设计） ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; min-height: 100vh;
+      background-color: #0a1015;
+      background-image: url('images/topBG.png');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center center;
+      font-family: 'Helvetica Neue', 'Segoe UI', 'Noto Sans CJK', 'Microsoft YaHei', sans-serif;
+      font-weight: 300;
+      color: #ede7db;
+      line-height: 1.6;
+    }
+    @media screen and (max-width: 768px) {
+      body { background-image: url('images/topBG-phone.png'); }
+    }
+    body {
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+      backdrop-filter: brightness(0.96) blur(1.5px);
+    }
+
+    /* ---------- 琉璃侧栏 · 琉璃神社 (可折叠) ---------- */
+    .sidebar {
+      width: 280px;
+      background-color: rgba(10, 22, 30, 0.8);
+      backdrop-filter: blur(14px);
+      border-right: 1.5px solid #5f5a4c;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+      box-shadow: 6px 0 24px rgba(0,0,0,0.6);
+      z-index: 30;
+    }
+    .sidebar.collapsed { width: 80px; }
+    .sidebar .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 18px;
+      border-bottom: 1px solid #9d8670;
+    }
+    .sidebar.collapsed .sidebar-header { justify-content: center; padding: 20px 0; }
+    .sidebar-header h3 {
+      display: flex;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 380;
+      letter-spacing: 6px;
+      color: #fffbee;
+      text-shadow: 0 0 8px #a5664b;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .sidebar.collapsed .sidebar-header h3 { display: none; }
+    .sidebar-logo {
+      height: 2.2rem; width: auto;
+      animation: none !important;
+      margin-right: 12px;
+      filter: drop-shadow(0 0 8px rgba(220, 180, 120, 0.6));
+      vertical-align: middle;
+    }
+    .sidebar.collapsed .sidebar-logo { display: none; }
+    .toggle-btn {
+      background: none; border: 1.2px solid #b89a7a; color: #edd6b0;
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.3rem; transition: 0.25s;
+    }
+    .toggle-btn:hover {
+      background-color: #be9e7b; color: #0e1419; border-color: #f5e6d3;
+    }
+    .sidebar.collapsed .toggle-btn i { transform: rotate(180deg); }
+
+    /* 标题样式：镜像选择 & 实用工具 */
+    .mirror-title {
+      padding: 20px 16px 8px;
+      font-size: 1rem; letter-spacing: 6px; color: #cbb295;
+      border-bottom: 1px dashed #5f5a4c; margin-bottom: 8px; white-space: nowrap;
+    }
+    .sidebar.collapsed .mirror-title { display: none; }
+
+    /* 列表容器 — 动态镜像列表 / 实用工具静态列表 */
+    .mirror-list {
+      list-style: none; padding: 8px 12px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .sidebar.collapsed .mirror-list { display: none; }
+
+    .mirror-item { width: 100%; }
+    .mirror-link {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 18px; background-color: rgba(28, 38, 46, 0.7);
+      border: 1px solid #7a6a5a; border-radius: 40px;
+      font-size: 1.3rem; font-weight: 400; letter-spacing: 6px;
+      color: #f3ecdb; text-decoration: none; transition: all 0.25s;
+      backdrop-filter: blur(4px); white-space: nowrap;
+    }
+    .sidebar.collapsed .mirror-link { padding: 14px 0; justify-content: center; border-radius: 30px; }
+    .mirror-link i { font-size: 1.7rem; width: 28px; text-align: center; }
+    .sidebar.collapsed .mirror-link span { display: none; }
+    .mirror-link.active {
+      background-color: #dac09a; border-color: #fbead0; color: #1a1e24;
+      box-shadow: 0 0 20px #c79a6e;
+    }
+    .mirror-link.active i { color: #2c1e14; }
+    .mirror-link:hover:not(.active) {
+      background-color: #4f4a42; border-color: #c9aa7b; transform: translateY(-3px);
+    }
+
+    /* ---------- 主殿 · 琉璃社 ---------- */
+    #top {
+      flex: 1; display: flex; flex-direction: column; min-width: 0;
+    }
+    #top_main {
+      flex: 1 0 auto; max-width: 900px; margin: 0 auto;
+      padding: 30px 30px 20px; width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    #top_logo { margin-bottom: 5px; padding: 10px 0; text-align: center; }
+    .spin-logo {
+      animation: RINNE 18s linear infinite; max-width: 100%; height: auto;
+      max-height: 140px; object-fit: contain;
+      filter: drop-shadow(0 0 16px rgba(220, 180, 120, 0.5));
+      transition: transform 0.4s ease;
+    }
+    .spin-logo:hover { animation-duration: 6s; }
+    .static-title {
+      max-width: 90%; height: auto; max-height: 90px; object-fit: contain;
+      filter: drop-shadow(0 4px 12px #34281c);
+    }
+    .hr_kagami {
+      width: 60%; margin: 24px auto 28px; border: 0;
+      border-bottom: 2px solid #c9aa7b; opacity: 0.7;
+      box-shadow: 0 1px 12px rgba(201, 170, 123, 0.5);
+    }
+
+    /* ---------- 五色书签 & 磁力工具界面 · 精致缩小版 ---------- */
+    .bookmark-row {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 18px; margin: 28px 0 20px; width: 100%;
+    }
+    .bookmark-item {
+      width: 100%; max-width: 400px;
+      background: rgba(20, 30, 38, 0.7); backdrop-filter: blur(8px);
+      border: 1px solid #a48e78; border-radius: 60px;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: 380; letter-spacing: 6px;
+      color: #fffbee; text-decoration: none;
+      transition: all 0.25s; box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; white-space: nowrap;
+    }
+    .bookmark-item i {
+      font-size: 1.2rem;
+      color: #dcc2a0;
+    }
+    .bookmark-item:hover {
+      background: #f0e2d0; border-color: #c58f5e; color: #0e1419;
+      transform: scale(1.02) translateY(-3px); box-shadow: 0 12px 28px #a76f4b;
+    }
+    .bookmark-item:hover i { color: #5a3a28; }
+
+    .magnet-container {
+      max-width: 540px !important;
+      padding: 16px 20px !important;
+      gap: 14px;
+      white-space: normal;
+      cursor: default;
+      flex-wrap: wrap;
+    }
+    .magnet-container:hover {
+      background: rgba(20, 30, 38, 0.8);
+      transform: none;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+    }
+    .magnet-container > i.fa-magnet {
+      font-size: 1.6rem;
+    }
+    .magnet-input {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(10, 18, 24, 0.7);
+      border: 1px solid #7a9a9c;
+      border-radius: 40px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      letter-spacing: 1.5px;
+      color: #f2eee7;
+      font-family: inherit;
+      outline: none;
+      transition: 0.2s;
+    }
+    .magnet-input:focus {
+      border-color: #e6c9a0;
+      background: rgba(20, 30, 38, 0.9);
+      box-shadow: 0 0 12px #b38b5b;
+    }
+    .magnet-btn {
+      background: rgba(200, 170, 120, 0.2);
+      border: 1px solid #b4a084;
+      border-radius: 40px;
+      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #eadbba;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .magnet-btn i { 
+      font-size: 1.1rem;
+    }
+    .magnet-btn:hover {
+      background: #dac09a;
+      color: #1e1e1e;
+      border-color: #fbead0;
+    }
+
+    /* 磁力复制按钮 · 完全居中 + 重构精致反馈 */
+    .magnet-copy-btn {
+      background: rgba(200, 170, 120, 0.2);
+      border: 1px solid #b4a084;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      color: #eadbba;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+      text-align: center;
+    }
+    .magnet-copy-btn i {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: inherit;
+    }
+    .magnet-copy-btn:hover {
+      background: #dac09a;
+      color: #1e1e1e;
+      border-color: #fbead0;
+    }
+
+    /* 磁力反馈信息 —— 重构：轻量提示取代 alert */
+    .magnet-feedback {
+      width: 100%;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: #e6d6b2;
+      text-align: center;
+      margin-top: 6px;
+      min-height: 22px;
+      transition: color 0.2s;
+    }
+    .magnet-feedback i {
+      margin-right: 6px;
+      color: #e6c9a0;
+    }
+    .magnet-description {
+      width: 100%;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      letter-spacing: 2px;
+      color: #c6bba8;
+      text-align: center;
+      border-top: 1px dashed #6a6e5a;
+      padding-top: 12px;
+      line-height: 1.6;
+    }
+    .magnet-description i { margin-right: 6px; color: #e6c9a0; }
+
+    /* ---------- 移动端精细适配 ---------- */
+    @media screen and (max-width: 700px) {
+      .bookmark-item {
+        max-width: 100%;
+        padding: 10px 18px;
+        font-size: 1rem;
+        letter-spacing: 4px;
+      }
+      .bookmark-item i {
+        font-size: 1.1rem;
+      }
+      .magnet-container {
+        padding: 14px 18px !important;
+      }
+      .magnet-input {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+      }
+      .magnet-btn {
+        padding: 7px 14px;
+        font-size: 0.95rem;
+      }
+      .magnet-copy-btn {
+        width: 42px; height: 42px;
+        font-size: 1.1rem;
+      }
+    }
+    @media screen and (max-width: 480px) {
+      .magnet-container {
+        padding: 12px 16px !important;
+      }
+      .magnet-copy-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        align-self: center;
+        margin: 4px 0;
+      }
+      .magnet-btn {
+        width: 100%;
+        border-radius: 40px;
+      }
+      .bookmark-item {
+        padding: 8px 16px;
+        font-size: 0.95rem;
+        letter-spacing: 3px;
+      }
+      .bookmark-item i {
+        font-size: 1rem;
+      }
+    }
+
+    /* 移动端侧边栏适配（完全保留原逻辑） */
+    @media screen and (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100% !important; min-height: auto; border-right: none; border-bottom: 1px solid #5f5a4c; }
+      .sidebar.collapsed { width: 100% !important; }
+      .sidebar.collapsed .mirror-list { display: none; }
+      .sidebar.collapsed .mirror-title { display: none; }
+      .sidebar:not(.collapsed) .mirror-list {
+        display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; padding: 12px;
+      }
+      .mirror-item { width: auto; }
+      .mirror-link { padding: 10px 20px; }
+      .mirror-link span { display: inline !important; }
+      .sidebar-header h3 { font-size: 1.3rem; }
+      .sidebar-logo { height: 1.8rem; }
+    }
+
+    /* 页脚文字 · 完全居中 */
+    #top_footer {
+      flex-shrink: 0; 
+      width: 100%; 
+      background: #031016;
+      background: linear-gradient(to top, #0c1a22, #0f1e27);
+      border-top: 1px solid #5f5a4c; 
+      padding: 24px 20px;
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.5);
+    }
+    #top_copyright {
+      display: block; 
+      color: #bfb6a2; 
+      font-size: 0.95rem;
+      letter-spacing: 2px; 
+      text-align: center;
+      line-height: 1.7;
+    }
+    .footer-text { 
+      margin-bottom: 10px; 
+      color: #ddcba4;
+      text-align: center;
+    }
+    .footer-copyright { 
+      font-size: 0.85rem; 
+      color: #a89e8c; 
+      letter-spacing: 2.5px;
+      text-align: center;
+    }
+
+    @keyframes RINNE {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 琉璃侧栏 · 镜像由links.js动态渲染 · 实用工具静态保留 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>
+        <img src="images/toplogo.png" alt="琉璃神社" class="sidebar-logo">
+        琉璃神社
+      </h3>
+      <div class="toggle-btn" id="toggleSidebarBtn">
+        <i class="fas fa-angle-double-left"></i>
+      </div>
+    </div>
+
+    <!-- 镜像选择 标题 + 动态列表容器 (完全由links.js驱动，移除硬编码书签) -->
+    <div class="mirror-title">
+      <i class="fas fa-rings-wedding"></i> 镜像选择
+    </div>
+    <!-- 镜像个绍动态注入此ul，ID用于精准渲染 -->
+    <ul class="mirror-list" id="mirrorDynamicList"></ul>
+
+    <!-- 实用工具 标题 + 磁力链接 & SkrBT (保持静态，保留原生功能) -->
+    <div class="mirror-title">
+      <i class="fas fa-toolbox"></i> 实用工具
+    </div>
+    <ul class="mirror-list">
+      <li class="mirror-item">
+        <a href="#" class="mirror-link magnet-tool" id="magnetToolBtn">
+          <i class="fas fa-magnet"></i>
+          <span>磁力链接</span>
+        </a>
+      </li>
+      <li class="mirror-item">
+        <a href="https://skrfabu.org/" class="mirror-link" id="skrbtLink" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-bolt"></i>
+          <span>SkrBT</span>
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- 主殿 · 琉璃神社核心区 -->
+  <div id="top">
+    <main id="top_main">
+      
+      <div id="top_logo">
+        <img src="images/toplogo.png" alt="琉璃神社 · 常世之门" class="spin-logo">
+      </div>
+
+      <div id="top_title">
+        <img src="images/toptitle.png" alt="琉璃神社" class="static-title">
+        <hr class="hr_kagami">
+      </div>
+
+      <!-- 五色书签 / 磁力工具区 · 完全由JS动态渲染 -->
+      <div class="bookmark-row" id="bookmarkContainer"></div>
+
+    </main>
+
+    <footer id="top_footer">
+      <div id="top_copyright">
+        <div class="footer-text">琉璃神社是一个分享最新最酷的ACG同人作品资讯社团，在这里你能找到很多欢乐。</div>
+        <div class="footer-copyright">琉璃神社版权©2011-2026 HACG保留所有权利。</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      "use strict";
+
+      // ---------- 依赖外部links.js中的MIRRORS ----------
+      // 移除了内嵌MIRRORS定义，直接使用全局MIRRORS (由links.js提供)
+      
+      // ---------- DOM 元素 ----------
+      const bookmarkContainer = document.getElementById('bookmarkContainer');
+      const sidebarEl = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('toggleSidebarBtn');
+      const magnetBtn = document.getElementById('magnetToolBtn');
+      const skrbtLink = document.getElementById('skrbtLink');
+      const mirrorDynamicList = document.getElementById('mirrorDynamicList');
+
+      // ---------- 书签五色配置 (不变) ----------
+      const BOOKMARK_CONFIG = [
+        { icon: 'fas fa-newspaper', text: '最新更新', id: 'latest' },
+        { icon: 'fas fa-film',      text: '动画',     id: 'anime' },
+        { icon: 'fas fa-book-open', text: '漫画',     id: 'comic' },
+        { icon: 'fas fa-file-alt',  text: '文章',     id: 'age' },
+        { icon: 'fas fa-tag',       text: '其他',     id: 'other' }
+      ];
+
+      let activeIndex = 0;      // 当前选中的镜像索引
+      let isMagnetMode = false; // 磁力工具界面标志
+
+      // ---------- 根据镜像索引生成五个分类链接 ----------
+      function generateUrlsByIndex(index) {
+        if (index === null || !MIRRORS[index]) return null;
+        const base = MIRRORS[index].baseUrl;
+        if (index === 0) {
+          return {
+            latest: base + '/wp/',
+            anime:  base + '/wp/category/all/anime/',
+            comic:  base + '/wp/category/all/comic/',
+            age:    base + '/wp/category/all/age/',
+            other:  base + '/wp/category/all/other/'
+          };
+        } else {
+          return {
+            latest: base + '/wp/',
+            anime:  base + '/wp/anime.html',
+            comic:  base + '/wp/comic.html',
+            age:    base + '/wp/age.html',
+            other:  base + '/wp/other.html'
+          };
+        }
+      }
+
+      // ---------- 绘制五色书签（普通模式）----------
+      function renderBookmarks(urls) {
+        if (!bookmarkContainer) return;
+        bookmarkContainer.innerHTML = '';
+        if (!urls) return;
+        BOOKMARK_CONFIG.forEach(item => {
+          const link = document.createElement('a');
+          link.href = urls?.[item.id] || '#';
+          link.className = 'bookmark-item';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          const icon = document.createElement('i');
+          icon.className = item.icon;
+          const span = document.createElement('span');
+          span.textContent = item.text;
+          link.appendChild(icon);
+          link.appendChild(span);
+          bookmarkContainer.appendChild(link);
+        });
+      }
+
+      // ---------- 重构 · 磁力工具界面：优雅复制反馈，移除烦人alert ----------
+      function renderMagnetMode() {
+        if (!bookmarkContainer) return;
+        bookmarkContainer.innerHTML = '';
+
+        const magnetCard = document.createElement('div');
+        magnetCard.className = 'bookmark-item magnet-container';
+
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-magnet';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '输入40位十六进制哈希，如 f119ea898d696d9b2ecf4934058a729c00f7d03d';
+        input.className = 'magnet-input';
+        input.id = 'magnetHashInput';
+        input.value = '';
+
+        const generateBtn = document.createElement('span');
+        generateBtn.className = 'magnet-btn';
+        generateBtn.innerHTML = '<i class="fas fa-hammer"></i> 生成';
+        generateBtn.title = '生成完整磁力链接';
+
+        const copyBtn = document.createElement('span');
+        copyBtn.className = 'magnet-copy-btn';
+        copyBtn.innerHTML = '<i class="fas fa-clipboard"></i>';
+        copyBtn.title = '复制完整磁链';
+
+        // 重构：新增反馈区，替代 window.alert
+        const feedback = document.createElement('div');
+        feedback.className = 'magnet-feedback';
+        feedback.id = 'magnetFeedback';
+        feedback.innerHTML = '<i class="fas fa-info-circle"></i> 就绪';
+
+        const desc = document.createElement('div');
+        desc.className = 'magnet-description';
+        desc.innerHTML = '<i class="fas fa-info-circle"></i> 使用说明：输入40位十六进制哈希，点击「生成」补全磁力链；点击复制按钮即可复制。';
+
+        magnetCard.appendChild(icon);
+        magnetCard.appendChild(input);
+        magnetCard.appendChild(generateBtn);
+        magnetCard.appendChild(copyBtn);
+        magnetCard.appendChild(feedback);  // 优雅反馈
+        magnetCard.appendChild(desc);
+        bookmarkContainer.appendChild(magnetCard);
+
+        // ---------- 显示临时反馈（取代alert）---------
+        function setFeedback(msg, isSuccess = true) {
+          const fb = document.getElementById('magnetFeedback');
+          if (!fb) return;
+          fb.innerHTML = `<i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${msg}`;
+          fb.style.color = isSuccess ? '#d4edc9' : '#f8d7da';
+          // 3.5秒后恢复默认提示
+          clearTimeout(window.feedbackTimer);
+          window.feedbackTimer = setTimeout(() => {
+            fb.innerHTML = '<i class="fas fa-info-circle"></i> 就绪';
+            fb.style.color = '#e6d6b2';
+          }, 3200);
+        }
+
+        // 生成磁力链接
+        function generateMagnetLink() {
+          let hash = input.value.trim();
+          if (hash === '') {
+            setFeedback('请输入磁力链接哈希值', false);
+            return;
+          }
+          if (hash.startsWith('magnet:?xt=urn:btih:')) {
+            hash = hash.replace('magnet:?xt=urn:btih:', '').split('&')[0];
+          }
+          const fullMagnet = `magnet:?xt=urn:btih:${hash}`;
+          input.value = fullMagnet;
+          input.select();
+          setFeedback('✅ 磁力链接生成成功', true);
+        }
+
+        // 复制磁链 · 重构：采用Clipboard API + 优雅降级，纯视觉反馈
+        async function copyCurrentLink() {
+          const magnetText = input.value.trim();
+          if (magnetText === '') {
+            setFeedback('没有可复制的磁链，请先生成', false);
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(magnetText);
+            setFeedback('✨ 磁力链接已复制到剪贴板', true);
+            // 复制成功视觉脉冲
+            copyBtn.style.background = '#5f9b6a';
+            copyBtn.style.color = '#fff';
+            setTimeout(() => {
+              copyBtn.style.background = '';
+              copyBtn.style.color = '';
+            }, 300);
+          } catch (err) {
+            // 降级方案
+            try {
+              input.select();
+              document.execCommand('copy');
+              setFeedback('📋 磁力链接已复制 (兼容模式)', true);
+            } catch (fallbackErr) {
+              setFeedback('❌ 复制失败，请手动选择复制', false);
+            }
+          }
+        }
+
+        // 绑定事件
+        generateBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          generateMagnetLink();
+        });
+
+        copyBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          copyCurrentLink();
+        });
+
+        input.addEventListener('click', function(e) {
+          if (input.value.trim() !== '') {
+            input.select();
+          }
+        });
+
+        input.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            generateMagnetLink();
+          }
+        });
+      }
+
+      // ---------- 统一刷新UI：根据模式与激活索引更新书签区 ----------
+      function refreshUI() {
+        if (isMagnetMode) {
+          renderMagnetMode();
+        } else {
+          const urls = (activeIndex !== null) ? generateUrlsByIndex(activeIndex) : null;
+          renderBookmarks(urls);
+        }
+      }
+
+      // ---------- 设置镜像选中状态（传入索引或null）----------
+      function setActiveMirror(index) {
+        // 移除所有镜像active类 (全量查询，适应动态生成)
+        document.querySelectorAll('.mirror-link[data-mirror-index]').forEach(link => link.classList.remove('active'));
+        
+        if (index !== null && !isNaN(index) && MIRRORS[index]) {
+          // 添加active类到对应镜像
+          document.querySelectorAll('.mirror-link[data-mirror-index]').forEach(link => {
+            const idx = parseInt(link.dataset.mirrorIndex, 10);
+            if (idx === index) link.classList.add('active');
+          });
+          activeIndex = index;
+          isMagnetMode = false;  // 切回书签模式
+        } else {
+          activeIndex = null;
+        }
+        refreshUI();
+      }
+
+      // ---------- 清除镜像选中（工具按钮调用）----------
+      function clearMirrorActive() {
+        setActiveMirror(null);
+      }
+
+      // ---------- 动态渲染侧边栏镜像列表 (从links.js MIRRORS读取) ----------
+      function renderSidebarMirrors() {
+        if (!mirrorDynamicList) return;
+        mirrorDynamicList.innerHTML = ''; // 清空内置占位
+        
+        MIRRORS.forEach((mirror, idx) => {
+          const li = document.createElement('li');
+          li.className = 'mirror-item';
+          
+          const a = document.createElement('a');
+          a.href = '#';
+          a.className = 'mirror-link';
+          a.setAttribute('data-mirror-index', idx);
+          
+          const i = document.createElement('i');
+          i.className = mirror.icon;   // 取自links.js
+          const span = document.createElement('span');
+          span.textContent = mirror.name;
+          
+          a.appendChild(i);
+          a.appendChild(span);
+          li.appendChild(a);
+          mirrorDynamicList.appendChild(li);
+        });
+      }
+
+      // ---------- 全局事件委托：镜像点击（完美适配动态生成）----------
+      document.addEventListener('click', function(e) {
+        const mirrorLink = e.target.closest('.mirror-link[data-mirror-index]');
+        if (mirrorLink) {
+          e.preventDefault();
+          const idx = parseInt(mirrorLink.dataset.mirrorIndex, 10);
+          if (!isNaN(idx)) setActiveMirror(idx);
+        }
+      });
+
+      // ---------- 磁力工具按钮：清除镜像高亮 + 磁力模式 ----------
+      if (magnetBtn) {
+        magnetBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          clearMirrorActive();      // 移除镜像高亮，activeIndex = null
+          isMagnetMode = true;      // 切换到磁力界面
+          refreshUI();
+        });
+      }
+
+      // ---------- SkrBT 链接：清除镜像高亮，保留磁力状态，正常跳转 ----------
+      if (skrbtLink) {
+        skrbtLink.addEventListener('click', function(e) {
+          clearMirrorActive();      // 只清除镜像高亮，不干扰磁力模式标志
+          // 不阻止默认跳转，链接正常打开
+        });
+      }
+
+      // ---------- 侧边栏折叠/展开 (原样保留)----------
+      function initSidebarToggle() {
+        if (!toggleBtn || !sidebarEl) return;
+        const updateToggleIcon = () => {
+          const icon = toggleBtn.querySelector('i');
+          if (sidebarEl.classList.contains('collapsed')) {
+            icon.className = 'fas fa-angle-double-right';
+          } else {
+            icon.className = 'fas fa-angle-double-left';
+          }
+        };
+        toggleBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebarEl.classList.toggle('collapsed');
+          updateToggleIcon();
+        });
+        updateToggleIcon();
+      }
+
+      // ---------- 启动一切：渲染镜像列表 + 默认选中镜像①(书签模式) ----------
+      renderSidebarMirrors();
+      setActiveMirror(0);   // 高亮镜像①，并渲染五色书签
+      initSidebarToggle();
+    })();
+  </script>
+</body>
+</html>
