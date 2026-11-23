@@ -7,7 +7,7 @@ const MIRRORS = [
   {
     name: '琉璃神社①',
     icon: 'fas fa-torii-gate',
-    baseUrl: 'https://www.hacg.dating'
+    baseUrl: 'https://www.hacg.datin'
   },
   {
     name: '琉璃神社②',
